@@ -1,11 +1,13 @@
-var timeBase = 100
+var timeBase = 50
 
 //cross browser support
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playMusic(){
     var composer1 = new composer()
+   // var composer2 = new composer()
     var t = setInterval(composer1.nextSection,1000);
+    //var t = setInterval(composer2.nextSection,1000);
 }
 
 function composer(OSCin){
@@ -64,25 +66,25 @@ function composer(OSCin){
 }
 
 function OSC(tone, beats, volume){
-    oscillator = audioCtx.createOscillator();
-    gainNode = audioCtx.createGain();
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(tone, audioCtx.currentTime); // value in hertz
-    oscillator.connect(gainNode);
-    gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-    gainNode.connect(audioCtx.destination);
-    var timeStamp = 0;
+    this.oscillator = audioCtx.createOscillator();
+    this.gainNode = audioCtx.createGain();
+    this.oscillator.type = 'triangle';
+    this.oscillator.frequency.setValueAtTime(tone, audioCtx.currentTime); // value in hertz
+    this.oscillator.connect(this.gainNode);
+    this.gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+    this.gainNode.connect(audioCtx.destination);
+    this.timeStamp = 0;
     this.begin = function(){
-        oscillator.start();
-        timeStamp = audioCtx.currentTime
-        return(timeStamp)
+        this.oscillator.start();
+        this.timeStamp = audioCtx.currentTime
+        return(this.timeStamp)
     }
     this.tone = function(tone,beats,volume){
-        gainNode.gain.setValueAtTime(volume, timeStamp);
-        oscillator.frequency.setValueAtTime(tone, timeStamp);
-        timeStamp += (beats*timeBase/1000)-0.015
-        gainNode.gain.setTargetAtTime(0, timeStamp, 0.015);
-        return (timeStamp-audioCtx.currentTime)
+        this.gainNode.gain.setValueAtTime(volume, this.timeStamp);
+        this.oscillator.frequency.setValueAtTime(tone, this.timeStamp);
+        this.timeStamp += (beats*timeBase/1000)-0.015
+        this.gainNode.gain.setTargetAtTime(0, this.timeStamp, 0.015);
+        return (this.timeStamp-audioCtx.currentTime)
     }
 
 }
