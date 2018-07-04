@@ -33,8 +33,8 @@ function composer(OSCin){
     volume[0] = 0.2
     for (var i = 1; i <16; i++){
         melody[i] = majorChord[i%7]
-        rhythm[i] = Math.round(Math.random()*7)+1/2
-        volume[i] = 0.2*Math.round(Math.random()*1.2)
+        rhythm[i] = i%4
+        volume[i] = (i%2-1)*0.2
     }
     var timeStamp = myOSC.begin()
     this.nextSection =function(){
