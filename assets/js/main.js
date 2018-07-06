@@ -1,68 +1,80 @@
-var timeBase = 50
+var timeBase = 100
+var baseNote = 35 //49 = A
+var baseKey = 0
+var baseChord = []
 
 //cross browser support
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playMusic(){
-    var composer1 = new composer()
-   // var composer2 = new composer()
-    var t = setInterval(composer1.nextSection,1000);
-    //var t = setInterval(composer2.nextSection,1000);
+    var composer1 = new composer(1)
+  //  var composer2 = new composer(8)
+    var t = setInterval(composer1.nextSection,100);
+   // var t = setInterval(composer2.nextSection,800);
 }
 
-function composer(OSCin){
-    var myOSC = new OSC(440, 0.0001,0.2)
-    var previousNote = 220
-    var previousBeat = 0
-    var baseNote = 35 //49 = A
-    var majorChord = []
+function composer(pace){
+    var myPace = pace
+    var myOSC = new OSC(440, 0.0001,0.001)
     var melody = []
     var rhythm = []
     var volume = []
     var m = 0
-    // Initialize Minor chord
-    majorChord[0] = 0
-    majorChord[1] = 2
-    majorChord[2] = 3
-    majorChord[3] = 5
-    majorChord[4] = 7
-    majorChord[5] = 8
-    majorChord[6] = 10
-    majorChord[7] = 12
-    // Initialize melody & rhythm
-    melody[0] = 0
-    rhythm[0] = Math.round(Math.random()*7)+1
-    volume[0] = 0.2
-    for (var i = 1; i <16; i++){
-        melody[i] = majorChord[i%7]
-        rhythm[i] = i%4
-        volume[i] = (i%2-1)*0.2
+    // Initialize base Key if required
+    if (baseKey == 0){
+        baseKey = keyPicker()
+        console.log(baseKey)
+    }
+    // Initialize base Chord if required
+    if (baseChord.length == 0){
+        baseChord = chordPicker(baseKey)
+        console.log(baseChord)
     }
     var timeStamp = myOSC.begin()
+
     this.nextSection =function(){
-        if (timeStamp<10){
-                for (var i = 0; i <16; i++){
-                    timeStamp = myOSC.tone(Math.pow(2,((baseNote + melody[i]-49)/12))*440,rhythm[i],volume[i])    
-                } 
-                for (var i = 0; i <16; i++){
-                    if (Math.random()>0.9){
-                        melody[i] = majorChord[Math.round(Math.random()*7)]
-                    }
-                    if (Math.random()>0.9){
-                        rhythm[i]  = Math.round(Math.random()*3)+1
-                    }
-                    if (Math.random()>0.9){
-                        //volume[i] = 0.2*Math.round(Math.random()*1.2)
-                    }
-                }
-              
-                if (Math.random()>0.7){
-                    baseNote = Math.min(59,baseNote + majorChord[5]-Math.round(Math.random())*12)
-                }
-        }else{
-            timeStamp -= 1
+        myOSC.tone(Math.round(Math.pow(2,((baseChord[Math.round(Math.random()*7)]-49)/12))*440),pace,0.2)
+        if (Math.random() > 0.9){
+            baseChord = chordPicker(baseKey)
+            console.log(baseChord)
         }
     }
+}
+
+function keyPicker(){
+    ///returns a random position on the circle of fifths
+    //0 to 12
+    return (Math.round((Math.random()*11)))
+}
+
+function chordPicker(Key){
+    //M = Major, m = minor, dim = diminished, () = input 
+    //[M][(M)][M][m][m][m][dim]
+    var nullChord = 40 //middle C = 261.6256 Hz
+    var position = Math.round(Math.random()*6)-1
+    var chord = []
+    if (position<2){
+        //majorChord
+        chord[0] = (position*7)%12 + nullChord
+        chord[1] = chord[0]+2
+        chord[2] = chord[1]+2
+        chord[3] = chord[2]+1
+        chord[4] = chord[3]+2
+        chord[5] = chord[4]+2
+        chord[6] = chord[5]+2
+        chord[7] = chord[6]+1
+    } else{
+        //minorChord
+        chord[0] = (position*7)%12+ nullChord
+        chord[1] = chord[0]+2
+        chord[2] = chord[1]+1
+        chord[3] = chord[2]+2
+        chord[4] = chord[3]+2
+        chord[5] = chord[4]+1
+        chord[6] = chord[5]+2
+        chord[7] = chord[6]+2
+    }
+    return (chord)
 }
 
 function OSC(tone, beats, volume){
